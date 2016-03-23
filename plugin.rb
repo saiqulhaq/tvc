@@ -1,13 +1,10 @@
-# name: Topic Viewers Counter
-# about: A super simple plugin to demonstrate how plugins work
+# name: tvc
+# about: Topic Visitors Counter
 # version: 0.0.1
 # authors: M Saiqul Haq
 
-# this plugin should use message_bus gem version greater than 2.0.0.beta.5
-# gem 'message_bus', '> 2.0.0.beta.5'
-
-PLUGIN_NAME ||= 'topic_viewers_counter'.freeze
-CHANNEL_PREFIX_NAME = 'topic_viewers_'
+PLUGIN_NAME ||= 'discourse_tvc'.freeze
+CHANNEL_PREFIX_NAME = 'tvc_'
 
 register_asset 'javascripts/discourse/initializers/tvc-controller.js.es6'
 register_asset 'javascripts/discourse/initializers/tvc-router.js.es6'
@@ -23,15 +20,14 @@ after_initialize do
 
   ::MessageBus.subscribe('/view-topic') do |msg|
     sleep 2
-    redis_key = "#{CHANNEL_PREFIX_NAME}#{msg.data}"
-    MessageBus.publish("/topic-viewers-#{msg.data}", { viewers: $redis.hlen(redis_key) })
+    redis_channel = "#{CHANNEL_PREFIX_NAME}#{msg.data}"
+    MessageBus.publish("/topic-viewers-#{msg.data}", { viewers: $redis.hlen(redis_channel) })
   end
 
   require_dependency 'application_controller'
 
-  class DiscourseTvc::TopicViewersController < ::ApplicationController
+  class DiscourseTvc::TopicVisitorsController < ::ApplicationController
     def on_open
-      redis_channel = "topic_viewers_#{params[:id]}"
       $redis.hset(redis_channel, session.id.to_s.first(16), Time.zone.now.to_i)
       MessageBus.publish('/view-topic', params[:id])
       render json: { subscribed: true }
@@ -42,16 +38,21 @@ after_initialize do
     # end
 
     def on_close
-      redis_channel = "topic_viewers_#{params[:id]}"
       $redis.hdel(redis_channel, session.id.to_s.first(16))
       MessageBus.publish('/view-topic', params[:id])
       render json: { unsubscribed: true }
     end
+
+    private
+    def redis_channel(id = nil)
+      return "#{CHANNEL_PREFIX_NAME}#{id}" if id
+      "#{CHANNEL_PREFIX_NAME}#{params[:id]}"
+    end
   end
 
   DiscourseTvc::Engine.routes.draw do
-    get '/track/:id/incr' => 'topic_viewers#on_open'
-    get '/track/:id/decr' => 'topic_viewers#on_close'
+    get '/track/:id/incr' => 'topic_visitors#on_open'
+    get '/track/:id/decr' => 'topic_visitors#on_close'
   end
 
   ::Discourse::Application.routes.append do
