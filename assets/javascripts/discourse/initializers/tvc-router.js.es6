@@ -1,4 +1,5 @@
-import TopicRoute from 'discourse/routes/topic'
+import TopicRoute from 'discourse/routes/topic';
+import { ajax } from 'discourse/lib/ajax';
 
 export default {
   name: "tvc-router",
@@ -7,41 +8,14 @@ export default {
     TopicRoute.reopen({
       onOpen: function(){
         const topic = this.modelFor('topic');
-        Discourse.ajax('/tvc/track/' + topic.id + '/incr', {
+        ajax('/_vcounter/track/' + topic.id + '/incr', {
           method: 'GET'
-        }).then(function(){
-          this.messageBus.subscribe('/topic-viewers-' + topic.id, function(data){
-            this.controllerFor('topic').setProperties({ totalViewers: data.viewers, totalViewersElClass: '' });
-            console.log(data);
-          }.bind(this));
-        }.bind(this), function(msg){
-          console.log(msg)
-        })
+        }).then(() => {
+          console.log('---------------- controller called successfully')
+        }, function(msg){
+          console.log('controller called unsuccessfully --------------')
+        });
       }.on('activate'),
-
-      onClose: function(){
-        this.leavingTopic();
-      }.on('deactivate'),
-
-      leavingTopic: function(){
-        const topic = this.modelFor('topic');
-        Discourse.ajax('/tvc/track/' + topic.id + '/decr', {method: 'GET'}).then(function(){
-          this.messageBus.unsubscribe('/topic-viewers-' + topic.id, function(){
-            console.log('unsubscribed')
-          });
-          this.controllerFor('topic').setProperties({ totalViewersElClass: 'hide' });
-        }.bind(this), function(msg){
-          console.log(msg)
-        })
-      },
-
-      actions: {
-        didInsertElement() {
-          $(window).on('unload onbeforeunload', function() {
-            this.leavingTopic();
-          }.bind(this));
-        }
-      }
     });
   }
-}
+};

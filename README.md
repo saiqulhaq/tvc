@@ -8,6 +8,17 @@ This plugin is depends on MessageBus greater than 2.0.0.beta.5 version.
 I am using MessageBus github master branch when develop this plugin, the reason is because there an issue -> [MessageBus.unsubscribe does not seem to
 work in JS client](https://github.com/SamSaffron/message_bus/issues/83)
 
+# site visitors
+redis channel name = vc-root
+
+# topic readers
+redis channel name = vc-topics-#{id}
+
+## Development
+
+```
+rspec -r ./spec/rails_helper.rb plugins/visitors_counter/spec/plugin_helper.rb
+```
 
 ## License 
 ### MIT

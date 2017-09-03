@@ -96,3 +96,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+# TVC
+spec/app
+/assets_old/
+/plugin.rb.orig
