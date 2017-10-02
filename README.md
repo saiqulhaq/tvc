@@ -2,6 +2,11 @@
 
 Discourse plugin to show how many visitors are viewing topic.
 
+## SCOPE
+
+* only track the session, so tracked data would increasing if user fires new private browser or another browser software
+* no user agent, IP, nor last accessed time information
+
 ### NOTE
 
 This plugin is depends on MessageBus greater than 2.0.0.beta.5 version.  
